@@ -4,21 +4,19 @@ import com.android.ddmlib.IDevice;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.run.DeviceChooser;
-import org.jetbrains.android.run.DeviceChooserListener;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joor.Reflect;
 
 import javax.swing.*;
 
 public class DeviceChooserDialog extends DialogWrapper {
     private final Project myProject;
-    private final DeviceChooser myDeviceChooser;
+    private final LocalDeviceChooser myDeviceChooser;
 
     private JPanel myPanel;
     private JPanel myDeviceChooserWrapper;
@@ -33,17 +31,14 @@ public class DeviceChooserDialog extends DialogWrapper {
         myProject = facet.getModule().getProject();
         final PropertiesComponent properties = PropertiesComponent.getInstance(myProject);
 
-        final String[] selectedSerials;
-        final String serialsStr = properties.getValue(SELECTED_SERIALS_PROPERTY);
-        if (serialsStr != null) {
-            selectedSerials = serialsStr.split(" ");
-        } else {
-            selectedSerials = null;
-        }
-
         getOKAction().setEnabled(false);
 
-        myDeviceChooser = newDeviceChooser(facet);
+        myDeviceChooser = new LocalDeviceChooser(
+                true,
+                getOKAction(),
+                facet,
+                facet.getConfiguration().getAndroidTarget(),
+                null);
         Disposer.register(myDisposable, myDeviceChooser);
         myDeviceChooser.addListener(new DeviceChooserListener() {
             @Override
@@ -53,37 +48,27 @@ public class DeviceChooserDialog extends DialogWrapper {
         });
 
         myDeviceChooserWrapper.add(myDeviceChooser.getPanel());
-
-        init();
-
+        final String[] selectedSerials = getSelectedSerialsFromPreferences(properties);
         myDeviceChooser.init(selectedSerials);
-
+        init();
         updateEnabled();
     }
 
-    private DeviceChooser newDeviceChooser(AndroidFacet facet) {
-        try {
-            return buildPostZeroDotSixDeviceChooser(facet);
-        } catch (NoSuchMethodError e) {
-            // that means that we are probably on a preview version of android studio or in intellij 13
-            return buildPreZeroDotSixDeviceChooser(facet);
+    @Nullable
+    private String[]getSelectedSerialsFromPreferences(PropertiesComponent properties) {
+        final String[] selectedSerials;
+        final String serialsStr = properties.getValue(SELECTED_SERIALS_PROPERTY);
+        if (serialsStr != null) {
+            selectedSerials = serialsStr.split(" ");
+        } else {
+            selectedSerials = null;
         }
+        return selectedSerials;
     }
 
-    // device chooser before android studio 0.6
-    private DeviceChooser buildPreZeroDotSixDeviceChooser(AndroidFacet facet) {
-        return Reflect.on(DeviceChooser.class)
-                .create(true, getOKAction(), facet, new Condition<IDevice>() {
-                    @Override
-                    public boolean value(IDevice iDevice) {
-                        return true;
-                    }
-                }).get();
-    }
-
-    // device chooser after android studio 0.6
-    private DeviceChooser buildPostZeroDotSixDeviceChooser(AndroidFacet facet) {
-        return new DeviceChooser(true, getOKAction(), facet, facet.getConfiguration().getAndroidTarget(), null);
+    private void persistSelectedSerialsToPreferences() {
+        final PropertiesComponent properties = PropertiesComponent.getInstance(myProject);
+        properties.setValue(SELECTED_SERIALS_PROPERTY, toString(myDeviceChooser.getSelectedDevices()));
     }
 
     private void updateOkButton() {
@@ -107,10 +92,7 @@ public class DeviceChooserDialog extends DialogWrapper {
     @Override
     protected void doOKAction() {
         myDeviceChooser.finish();
-
-        final PropertiesComponent properties = PropertiesComponent.getInstance(myProject);
-        properties.setValue(SELECTED_SERIALS_PROPERTY, toString(myDeviceChooser.getSelectedDevices()));
-
+        persistSelectedSerialsToPreferences();
         super.doOKAction();
     }
 
