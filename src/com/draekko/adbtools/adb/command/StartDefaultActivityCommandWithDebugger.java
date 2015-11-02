@@ -194,9 +194,9 @@ public class StartDefaultActivityCommandWithDebugger implements Command {
         configuration.PORT = port;
         configuration.USE_SOCKET_TRANSPORT = true;
         configuration.SERVER_MODE = false;
-
         ApplicationManager.getApplication().invokeLater(new Runnable() {
             public void run() {
+                Uninterruptibles.sleepUninterruptibly(2, TimeUnit.SECONDS);
                 Executor executor = DefaultDebugExecutor.getDebugExecutorInstance();
                 ProgramRunnerUtil.executeConfiguration(prvProject, prvSettings, executor);
             }
@@ -222,9 +222,9 @@ public class StartDefaultActivityCommandWithDebugger implements Command {
 
             if (client == null) {
                 IDevice [] devices = bridge.getDevices();
-                for (int loop = 0; loop < devices.length; loop++) {
-                    if (devices[loop] != null) {
-                        client = devices[loop].getClient(packageName);
+                for (IDevice local_device : devices) {
+                    if (local_device != null) {
+                        client = local_device.getClient(packageName);
                     }
                     if (client != null) break;
                 }
@@ -236,14 +236,15 @@ public class StartDefaultActivityCommandWithDebugger implements Command {
                 return false;
             }
 
-            if (client == null) {
+            // Disable for now, causes issues in as 1.5 preview 1&2
+            /* if (client == null) {
                 info("Trying to find client for device.");
                 if (device.hasClients()) {
                     client = null;
                     clients = device.getClients();
-                    for (int i=0; i<clients.length; i++) {
-                        if (packageName.equalsIgnoreCase(clients[i].getClientData().getClientDescription())) {
-                            client = clients[i];
+                    for (Client local_client : clients) {
+                        if (packageName.equalsIgnoreCase(local_client.getClientData().getClientDescription())) {
+                            client = local_client;
                             break;
                         }
                     }
@@ -253,7 +254,7 @@ public class StartDefaultActivityCommandWithDebugger implements Command {
                 } else{
                     client = device.getClient(packageName);
                 }
-            }
+            } */
 
             if (client == null) {
                 error(String.format("ERROR: Can't start debugger."));
