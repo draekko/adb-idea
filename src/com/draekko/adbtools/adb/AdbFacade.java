@@ -104,7 +104,7 @@ public class AdbFacade {
                 if (devices.length == 1) {
                     return new DeviceResult(devices, facet, packageName);
                 } else if (devices.length > 1) {
-                    return askUserForDevice(facet, packageName);
+                    return askUserForDevice(facet, packageName, project);
                 } else {
                     return null;
                 }
@@ -131,7 +131,7 @@ public class AdbFacade {
                 && !facet.getManifest().getInstrumentations().isEmpty();
     }
 
-    private static DeviceResult askUserForDevice(AndroidFacet facet, String packageName) {
+    private static DeviceResult askUserForDevice(AndroidFacet facet, String packageName, Project project) {
         final DeviceChooserDialog chooser = new DeviceChooserDialog(facet);
         chooser.show();
 

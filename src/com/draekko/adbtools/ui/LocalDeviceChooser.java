@@ -23,7 +23,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.ddms.DeviceRenderer;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
-import com.android.tools.idea.run.LaunchCompatibility;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;

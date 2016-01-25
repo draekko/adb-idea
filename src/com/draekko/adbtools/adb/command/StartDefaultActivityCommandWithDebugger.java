@@ -10,13 +10,16 @@ import com.draekko.adbtools.adb.command.receiver.GenericReceiver;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.util.concurrent.Uninterruptibles;
+import com.intellij.debugger.engine.RemoteDebugProcessHandler;
 import com.intellij.execution.*;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.executors.DefaultDebugExecutor;
+import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.remote.RemoteConfiguration;
 import com.intellij.execution.remote.RemoteConfigurationType;
+import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -25,6 +28,7 @@ import com.intellij.ui.content.Content;
 import com.intellij.util.NotNullFunction;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -36,6 +40,7 @@ import static com.draekko.adbtools.ui.NotificationHelper.error;
 import static com.draekko.adbtools.ui.NotificationHelper.info;
 
 public class StartDefaultActivityCommandWithDebugger implements Command {
+    public static final String TOOL_WINDOW_ID = AndroidBundle.message("android.logcat.title");
     private static RunnerAndConfigurationSettings prvSettings;
     private static Project prvProject;
     private static IDevice prvDevice;
@@ -148,9 +153,11 @@ public class StartDefaultActivityCommandWithDebugger implements Command {
         final String configurationName = String.format("Android Debugger (%s)", port);
         ProcessHandler processHandler;
         Content content;
-        Collection descriptors;
+        final Collection descriptors;
 
-        if (prvProject == null) prvProject = project;
+        if (prvProject == null) {
+            prvProject = project;
+        }
 
         descriptors = ExecutionHelper.findRunningConsoleByTitle(prvProject, new NotNullFunction<String, Boolean>() {
             @NotNull
@@ -187,18 +194,25 @@ public class StartDefaultActivityCommandWithDebugger implements Command {
         }
 
         ConfigurationFactory factory = remoteConfigurationType.getFactory();
-        prvSettings = RunManager.getInstance(project).createRunConfiguration(configurationName, factory);
+        prvSettings = RunManager.getInstance(prvProject).createRunConfiguration(configurationName, factory);
 
         RemoteConfiguration configuration = (RemoteConfiguration)prvSettings.getConfiguration();
         configuration.HOST = "localhost";
         configuration.PORT = port;
         configuration.USE_SOCKET_TRANSPORT = true;
         configuration.SERVER_MODE = false;
+
         ApplicationManager.getApplication().invokeLater(new Runnable() {
             public void run() {
                 Uninterruptibles.sleepUninterruptibly(2, TimeUnit.SECONDS);
+
                 Executor executor = DefaultDebugExecutor.getDebugExecutorInstance();
                 ProgramRunnerUtil.executeConfiguration(prvProject, prvSettings, executor);
+
+                //AndroidRunningState debugState;
+                ConsoleView debugConsoleView = TextConsoleBuilderFactory.getInstance().createBuilder(prvProject).getConsole();
+                String configID = prvSettings.getConfiguration().getType().getId();
+                RemoteDebugProcessHandler process = new RemoteDebugProcessHandler(prvProject);
             }
         });
     }
