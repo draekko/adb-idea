@@ -22,7 +22,8 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.ddms.DeviceRenderer;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.ManifestInfo;
+import com.draekko.adbtools.compatibility.LaunchCompatibility;
+import com.draekko.adbtools.compatibility.ManifestInfo;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -113,8 +114,7 @@ public class LocalDeviceChooser implements Disposable {
         myFilter = filter;
         myMinSdkVersion = AndroidModuleInfo.get(facet).getRuntimeMinSdkVersion();
         myProjectTarget = projectTarget;
-        //myRequiredHardwareFeatures = getRequiredHardwareFeatures(ManifestInfo.get(facet.getModule(), true).getRequiredFeatures());
-        myRequiredHardwareFeatures = getRequiredHardwareFeatures(ManifestInfo.get(facet.getModule(), true).getUsedFeatures());
+        myRequiredHardwareFeatures = getRequiredHardwareFeatures(ManifestInfo.get(facet.getModule(), true).getRequiredFeatures());
 
         myDeviceTable = new JBTable();
         myPanel = ScrollPaneFactory.createScrollPane(myDeviceTable);

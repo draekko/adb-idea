@@ -1,16 +1,19 @@
 package com.draekko.adbtools.adb;
 
+import com.android.builder.model.SourceProvider;
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
-import com.android.tools.idea.run.activity.ActivityLocatorUtils;
-import com.android.tools.idea.run.activity.DefaultActivityLocator;
 import com.draekko.adbtools.adb.command.receiver.GenericReceiver;
+import com.draekko.adbtools.compatibility.ActivityLocatorUtils;
+import com.draekko.adbtools.compatibility.DefaultActivityLocator;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.manifest.*;
@@ -20,9 +23,24 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joor.Reflect;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+//import com.android.tools.idea.run.activity.ActivityLocatorUtils;
+//import com.android.tools.idea.run.activity.DefaultActivityLocator;
+
+//import org.jetbrains.android.facet.AndroidFacet;
+
+//import com.android.tools.idea.run.activity.ActivityLocatorUtils;
+//import com.android.tools.idea.run.activity.DefaultActivityLocator;
+//import org.jetbrains.android.dom.AndroidDomUtil;
+//import org.jetbrains.android.dom.manifest.*;
+//import org.jetbrains.android.facet.AndroidFacet;
+//import org.jetbrains.android.util.AndroidUtils;
+
+//import org.jetbrains.android.facet.AndroidFacet;
 
 public class AdbUtil {
 
@@ -54,7 +72,13 @@ public class AdbUtil {
 
     public static String getDefaultLauncherActivityName(AndroidFacet facet) {
         try {
+            SourceProvider sourceProvider = facet.getMainSourceProvider();
+            File manifestIoFile = sourceProvider.getManifestFile();
+            final VirtualFile manifestFile =
+                    LocalFileSystem.getInstance().findFileByIoFile(manifestIoFile);
+
             return DefaultActivityLocator.getDefaultLauncherActivityName(facet.getManifest());
+            //return DefaultActivityLocator.getDefaultLauncherActivityName(facet.getManifest());
         } catch (Exception e) {
             return Reflect.on(AndroidUtils.class).call("getDefaultLauncherActivityName", facet.getManifest()).get();
         }

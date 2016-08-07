@@ -10,5 +10,4 @@ public class ClearDataAndRestartWithDebuggerAction extends AdbAction {
         AdbFacade.clearDataAndRestartWithDebugger(project);
     }
 
-
 }

@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/adb_idea.iml" filepath="$PROJECT_DIR$/adb_idea.iml" />
+      <module fileurl="file://$PROJECT_DIR$/adb-tools.iml" filepath="$PROJECT_DIR$/adb-tools.iml" />
     </modules>
   </component>
 </project>

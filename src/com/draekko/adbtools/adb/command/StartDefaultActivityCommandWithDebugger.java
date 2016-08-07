@@ -234,7 +234,9 @@ public class StartDefaultActivityCommandWithDebugger implements Command {
         try {
             Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
 
-            if (client == null) {
+            long t_seconds = System.currentTimeMillis();
+            long s_seconds = t_seconds + 10000;
+            while (client == null && t_seconds < s_seconds) {
                 IDevice [] devices = bridge.getDevices();
                 for (IDevice local_device : devices) {
                     if (local_device != null) {
@@ -242,6 +244,13 @@ public class StartDefaultActivityCommandWithDebugger implements Command {
                     }
                     if (client != null) break;
                 }
+                if (client != null) break;
+                t_seconds = System.currentTimeMillis();
+            }
+
+            if (client == null) {
+                error(String.format("ERROR: Can't start debugger, missing client/port."));
+                return false;
             }
 
             boolean canDdmsBeCorrupted = AdbService.canDdmsBeCorrupted(bridge);
@@ -269,11 +278,6 @@ public class StartDefaultActivityCommandWithDebugger implements Command {
                     client = device.getClient(packageName);
                 }
             } */
-
-            if (client == null) {
-                error(String.format("ERROR: Can't start debugger."));
-                return false;
-            }
 
             final String debugPort = Integer.toString(client.getDebuggerListenPort());
             runDebugger(debugPort, project);

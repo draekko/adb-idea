@@ -1,7 +1,7 @@
 <idea-plugin version="3" url="https://github.com/draekko/adb-tools">
     <id>com.draekko.adbtools</id>
     <name>ADB Tools</name>
-    <version>1.2.5</version>
+    <version>1.2.6</version>
     <vendor url="http://www.draekko.com">Draekko</vendor>
 
     <description><![CDATA[
@@ -38,6 +38,10 @@
 
 
     <change-notes><![CDATA[
+        <b>1.2.6</b>
+        <ul>
+            <li>BUGFIX: Fixed to work with Android Studio 2.2 preview +</li>
+        </ul>
         <b>1.2.5</b>
         <ul>
             <li>BUGFIX: Fixed to work with Android Studio 1.5 preview +</li>
@@ -102,7 +106,7 @@
         ]]>
     </change-notes>
 
-    <idea-version since-build="107.105"/>
+    <idea-version since-build="143.1184"/>
 
     <depends>com.intellij.modules.platform</depends>
     <depends>org.jetbrains.android</depends>
